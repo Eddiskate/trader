@@ -1,0 +1,90 @@
+@import "tailwindcss";
+
+:root {
+  --bg: #000000;
+  --bg-2: #0a0a0a;
+  --panel: #0c0c0c;
+  --panel-2: #141414;
+  --line: #222222;
+  --ink: #f2f2f2;
+  --muted: #8d8d8d;
+  --gold: #e8e8e8;
+  --gold-dim: #6f6f6f;
+  --up: #3dd68c;
+  --down: #ff6b6b;
+  --buy: #7eb6ff;
+}
+
+@theme inline {
+  --color-bg: var(--bg);
+  --color-bg-2: var(--bg-2);
+  --color-panel: var(--panel);
+  --color-panel-2: var(--panel-2);
+  --color-line: var(--line);
+  --color-ink: var(--ink);
+  --color-muted: var(--muted);
+  --color-gold: var(--gold);
+  --color-gold-dim: var(--gold-dim);
+  --color-up: var(--up);
+  --color-down: var(--down);
+  --color-buy: var(--buy);
+  --font-sans: var(--font-plex-sans);
+  --font-mono: var(--font-plex);
+}
+
+* {
+  box-sizing: border-box;
+}
+
+html,
+body {
+  height: 100%;
+  width: 100%;
+  margin: 0;
+  background: #000;
+  color: var(--ink);
+  font-family: var(--font-plex-sans), system-ui, sans-serif;
+}
+
+@layer base {
+  button,
+  input,
+  select,
+  textarea {
+    font: inherit;
+    border-radius: 0;
+  }
+
+  input,
+  select,
+  textarea {
+    color: var(--ink);
+    background: #000;
+  }
+}
+
+input:focus,
+select:focus,
+textarea:focus,
+button:focus-visible {
+  outline: 1px solid #555;
+  outline-offset: 0;
+}
+
+.tabular {
+  font-family: var(--font-plex), ui-monospace, monospace;
+  font-variant-numeric: tabular-nums;
+}
+
+::-webkit-scrollbar {
+  width: 10px;
+  height: 10px;
+}
+
+::-webkit-scrollbar-track {
+  background: #000;
+}
+
+::-webkit-scrollbar-thumb {
+  background: #2a2a2a;
+}
