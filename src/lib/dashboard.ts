@@ -11,7 +11,9 @@ export async function buildDashboard(): Promise<DashboardPayload> {
 
   try {
     const { asOf, rates, available } = await loadNbpRates(needed);
-    const rateMap = Object.fromEntries(rates.map((rate) => [rate.code, rate.current]));
+    const rateMap = Object.fromEntries(
+      rates.map((rate) => [rate.code, rate.bid ?? rate.current]),
+    );
     const { summaries, totals } = summarizeAll(store.trades, rateMap);
 
     return {

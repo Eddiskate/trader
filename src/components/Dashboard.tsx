@@ -1,7 +1,8 @@
 "use client";
 
-import { formatPln, formatRate, todayIso } from "@/lib/format";
-import type { DashboardPayload, Side } from "@/lib/types";
+import { formatPln, todayIso } from "@/lib/format";
+import { quoteRate } from "@/lib/quotes";
+import type { DashboardPayload, RateSnapshot, Side } from "@/lib/types";
 import { useEffect, useMemo, useState, type ReactNode } from "react";
 import { Ledger } from "./Ledger";
 import { Portfolio } from "./Portfolio";
@@ -49,13 +50,19 @@ export function Dashboard() {
 
   const selectedRate = data?.rates.find((item) => item.code === currency);
 
+  function fillQuote(nbp: RateSnapshot, nextSide: Side = side) {
+    const quoted = quoteRate(nbp, nextSide);
+    setRate(roundRate(quoted));
+    const qty = Number(amount);
+    if (qty > 0) setPlnAmount(roundMoney(qty * quoted));
+    setSyncField("rate");
+  }
+
   useEffect(() => {
     if (!selectedRate || rate) return;
-    const nextRate = roundRate(selectedRate.current);
-    setRate(nextRate);
-    const qty = Number(amount);
-    if (qty > 0) setPlnAmount(roundMoney(qty * selectedRate.current));
-  }, [selectedRate, rate, amount]);
+    fillQuote(selectedRate);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [selectedRate, rate]);
 
   const summary = data?.summaries.find((item) => item.currency === currency);
 
@@ -69,11 +76,12 @@ export function Dashboard() {
     setCurrency(code);
     const nbp = data?.rates.find((item) => item.code === code);
     if (!nbp) return;
-    const nextRate = roundRate(nbp.current);
-    setRate(nextRate);
-    const qty = Number(amount);
-    if (qty > 0) setPlnAmount(roundMoney(qty * nbp.current));
-    setSyncField("rate");
+    fillQuote(nbp);
+  }
+
+  function changeSide(next: Side) {
+    setSide(next);
+    if (selectedRate) fillQuote(selectedRate, next);
   }
 
   function changeAmount(value: string) {
@@ -180,7 +188,7 @@ export function Dashboard() {
             <span className="text-muted">base PLN</span>
           </div>
           <span className="tabular text-[11px] text-muted">
-            NBP {data.asOf ?? "—"}
+            NBP {data.asOf ?? "—"} · wycena po kursie sprzedaży (tabela C)
           </span>
         </div>
         <div className="grid grid-cols-2 border-t border-line lg:grid-cols-5">
@@ -260,7 +268,7 @@ export function Dashboard() {
           currency={currency}
           onCurrency={applyCurrency}
           side={side}
-          onSide={setSide}
+          onSide={changeSide}
           amount={amount}
           onAmount={changeAmount}
           rate={rate}

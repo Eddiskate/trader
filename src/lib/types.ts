@@ -23,6 +23,8 @@ export type RateSnapshot = {
   code: string;
   name: string;
   current: number;
+  bid: number | null;
+  ask: number | null;
   date: string;
   min: number;
   max: number;

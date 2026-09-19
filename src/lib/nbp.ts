@@ -13,6 +13,13 @@ type NbpTable = {
 };
 
 const NBP_TABLE = "https://api.nbp.pl/api/exchangerates/tables/A/last/67/?format=json";
+const NBP_TABLE_C = "https://api.nbp.pl/api/exchangerates/tables/C?format=json";
+
+type NbpCashRate = {
+  code: string;
+  bid: number;
+  ask: number;
+};
 
 function levelFromPercentile(percentile: number): RateLevel {
   if (percentile <= 20) return "niski";
@@ -43,6 +50,8 @@ function snapshot(code: string, name: string, series: { date: string; mid: numbe
     code,
     name,
     current: current.mid,
+    bid: null,
+    ask: null,
     date: current.date,
     min,
     max,
@@ -51,6 +60,16 @@ function snapshot(code: string, name: string, series: { date: string; mid: numbe
     level,
     hint: hintFromLevel(level),
   };
+}
+
+async function loadNbpCashRates() {
+  const response = await fetch(NBP_TABLE_C, {
+    headers: { Accept: "application/json" },
+    next: { revalidate: 60 * 60 },
+  });
+  if (!response.ok) return new Map<string, NbpCashRate>();
+  const tables = (await response.json()) as { rates: NbpCashRate[] }[];
+  return new Map((tables[0]?.rates ?? []).map((rate) => [rate.code, rate]));
 }
 
 export async function loadNbpRates(codes: string[]) {
@@ -64,6 +83,7 @@ export async function loadNbpRates(codes: string[]) {
   }
 
   const tables = (await response.json()) as NbpTable[];
+  const cash = await loadNbpCashRates();
   const wanted = new Set(codes.map((code) => code.toUpperCase()));
   const series = new Map<string, { date: string; mid: number }[]>();
   const available = new Map<string, string>();
@@ -82,7 +102,14 @@ export async function loadNbpRates(codes: string[]) {
     .map((code) => {
       const rows = series.get(code);
       if (!rows) return null;
-      return snapshot(code, available.get(code) ?? currencyName(code), rows);
+      const row = snapshot(code, available.get(code) ?? currencyName(code), rows);
+      if (!row) return null;
+      const pair = cash.get(code);
+      if (pair) {
+        row.bid = pair.bid;
+        row.ask = pair.ask;
+      }
+      return row;
     })
     .filter((row): row is RateSnapshot => row !== null);
 

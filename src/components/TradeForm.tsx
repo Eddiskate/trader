@@ -60,8 +60,14 @@ export function TradeForm({
         </h2>
         {currentRate && (
           <p className="tabular text-[11px] text-muted">
-            NBP {currentRate.code}{" "}
-            <span className="text-ink">{formatRate(currentRate.current)}</span>
+            NBP śr. {formatRate(currentRate.current)}
+            {currentRate.bid != null && (
+              <>
+                {" "}
+                · sprzedasz ~{" "}
+                <span className="text-ink">{formatRate(currentRate.bid)}</span>
+              </>
+            )}
           </p>
         )}
       </div>
@@ -167,6 +173,10 @@ export function TradeForm({
             <p className="mt-2">
               WPŁYW{" "}
               <span className="tabular text-ink">{formatPln(preview.proceeds)}</span>
+            </p>
+            <p className="mt-1 text-[11px] text-muted">
+              Podgląd po NBP C (kupno banku). Kantor ING bywa inny — wklej kurs z
+              Mojego ING przed zapisem.
             </p>
             {preview.warning === "no-inventory" ? (
               <p className="mt-2 text-[12px] text-muted">

@@ -55,6 +55,14 @@ export function RateCards({
                 {formatRate(rate.current)}
               </p>
             </div>
+            {rate.bid != null && rate.ask != null && (
+              <p className="mt-2 text-[11px] text-muted">
+                sprzedaż {formatRate(rate.bid)}
+                <span className="mx-1">·</span>
+                kupno {formatRate(rate.ask)}
+                <span className="ml-1">NBP C</span>
+              </p>
+            )}
 
             <div className="mt-3 flex items-center justify-between text-[11px]">
               <span className={`uppercase tracking-[0.08em] ${LEVEL_TONE[rate.level]}`}>
