@@ -5,6 +5,7 @@ import { quoteRate } from "@/lib/quotes";
 import type { DashboardPayload, RateSnapshot, Side } from "@/lib/types";
 import { useEffect, useMemo, useState, type ReactNode } from "react";
 import { Ledger } from "./Ledger";
+import { PaydayHelper } from "./PaydayHelper";
 import { Portfolio } from "./Portfolio";
 import { RateCards } from "./RateCards";
 import { SignedPln } from "./SignedPln";
@@ -31,6 +32,7 @@ export function Dashboard() {
   const [syncField, setSyncField] = useState<"rate" | "pln">("rate");
   const [submitting, setSubmitting] = useState(false);
   const [adding, setAdding] = useState("");
+  const [paydayAmount, setPaydayAmount] = useState("500");
 
   async function refresh(next?: DashboardPayload) {
     if (next) {
@@ -50,10 +52,13 @@ export function Dashboard() {
 
   const selectedRate = data?.rates.find((item) => item.code === currency);
 
-  function fillQuote(nbp: RateSnapshot, nextSide: Side = side) {
+  function fillQuote(
+    nbp: RateSnapshot,
+    nextSide: Side = side,
+    qty = Number(amount),
+  ) {
     const quoted = quoteRate(nbp, nextSide);
     setRate(roundRate(quoted));
-    const qty = Number(amount);
     if (qty > 0) setPlnAmount(roundMoney(qty * quoted));
     setSyncField("rate");
   }
@@ -262,6 +267,26 @@ export function Dashboard() {
         </div>
         <RateCards rates={data.rates} selected={currency} onSelect={applyCurrency} />
       </section>
+
+      <PaydayHelper
+        rate={selectedRate}
+        amount={paydayAmount}
+        onAmount={setPaydayAmount}
+        onKeep={() => {
+          const qty = Number(paydayAmount);
+          setAmount(paydayAmount);
+          setSide("inflow");
+          setNote(`wypłata ${todayIso}`);
+          if (selectedRate) fillQuote(selectedRate, "inflow", qty);
+        }}
+        onExchange={() => {
+          const qty = Number(paydayAmount);
+          setAmount(paydayAmount);
+          setSide("sell");
+          setNote(`wymiana wpływu ${todayIso}`);
+          if (selectedRate) fillQuote(selectedRate, "sell", qty);
+        }}
+      />
 
       <div className="grid min-h-0 flex-1 grid-cols-1 lg:grid-cols-[360px_minmax(0,1fr)]">
         <TradeForm
